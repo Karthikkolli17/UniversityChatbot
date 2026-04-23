@@ -34,15 +34,16 @@ USE_THETA = False
 
 logging.getLogger().setLevel(logging.WARNING)
 
-PROJECT_ROOT = Path(__file__).parent
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+EVAL_DIR = Path(__file__).resolve().parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 os.chdir(PROJECT_ROOT)
 
-GOLD_PATH = PROJECT_ROOT / "gold_answers.json"
-GENERATED_PATH = PROJECT_ROOT / "generated_answers.json"
-REPORT_PATH = PROJECT_ROOT / "metrics_report.md"
-RESULTS_JSON_PATH = PROJECT_ROOT / "evaluation_results.json"
+GOLD_PATH = EVAL_DIR / "gold_answers.json"
+GENERATED_PATH = EVAL_DIR / "generated_answers.json"
+REPORT_PATH = EVAL_DIR / "metrics_report.md"
+RESULTS_JSON_PATH = EVAL_DIR / "evaluation_results.json"
 
 
 # ── Import search functions (no Streamlit needed) ─────────────────────────────

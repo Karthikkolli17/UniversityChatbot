@@ -150,6 +150,40 @@ def _extract_contact_candidate(prompt: str) -> str:
         return " ".join(tokens)
     return ""
 
+# ── Constants ────────────────────────────────────────────────────────────────
+
+# Words that disqualify a 2–3 token input from being treated as a person name.
+# Prevents "Fall 2026", "help me", etc. from routing to the contacts domain.
+_NON_NAME_WORDS = {
+    "fall", "spring", "summer", "winter",
+    "january", "february", "march", "april", "may", "june",
+    "july", "august", "september", "october", "november", "december",
+    "holiday", "holidays", "break", "breaks", "schedule", "schedules",
+    "deadline", "deadlines", "term", "semester", "session", "orientation",
+    "finals", "final", "exam", "exams", "week", "day", "year",
+    "commencement", "graduation", "convocation",
+    "early", "departure", "midterm", "midterms", "grading", "begins",
+    "registration", "coursera", "campus", "course", "courses",
+    "class", "classes", "credit", "credits", "load", "limit",
+    "add", "drop", "withdraw", "withdrawal", "audit", "overload",
+    "grade", "grades", "appeal", "transcript", "enrollment",
+    "transfer", "abroad", "study", "research", "advising",
+    "student", "students", "faculty", "staff", "advisor", "dean",
+    "professor", "instructor", "new", "office", "hours",
+    "honor", "honors", "roll", "list", "labor", "policy", "policies",
+    "fee", "fees", "never", "mind",
+}
+
+# Topic keywords that signal the query is about a non-contact domain even if
+# the input looks like a proper name (e.g. "Fee Schedule").
+_DIRECT_NON_CONTACT_ANCHORS = {
+    "tuition", "fee", "fees", "cost", "costs", "rate", "rates",
+    "policy", "policies", "rule", "rules", "probation", "gpa",
+    "housing", "visa", "handbook", "calendar", "holiday", "holidays",
+    "deadline", "deadlines", "break", "breaks", "semester", "term",
+    "document", "documents",
+}
+
 # ── FastAPI app ───────────────────────────────────────────────────────────────
 
 app = FastAPI(
@@ -268,38 +302,6 @@ def ask(req: AskRequest):
         # Proper-name detection: 2–3 alphabetic words, at least one capital, no
         # punctuation/digits, and none of the words are academic/calendar keywords.
         # Prevents "Fall 2026" or "help me" from being misclassified as a person name.
-        _NON_NAME_WORDS = {
-            # Seasons / time
-            "fall", "spring", "summer", "winter",
-            # Months
-            "january", "february", "march", "april", "may", "june",
-            "july", "august", "september", "october", "november", "december",
-            # Academic calendar
-            "holiday", "holidays", "break", "breaks", "schedule", "schedules",
-            "deadline", "deadlines", "term", "semester", "session", "orientation",
-            "finals", "final", "exam", "exams", "week", "day", "year",
-            "commencement", "graduation", "convocation",
-            "early", "departure", "midterm", "midterms", "grading", "begins",
-            # Registration / academics
-            "registration", "coursera", "campus", "course", "courses",
-            "class", "classes", "credit", "credits", "load", "limit",
-            "add", "drop", "withdraw", "withdrawal", "audit", "overload",
-            "grade", "grades", "appeal", "transcript", "enrollment",
-            "transfer", "abroad", "study", "research", "advising",
-            # Role words (not names)
-            "student", "students", "faculty", "staff", "advisor", "dean",
-            "professor", "instructor", "new", "office", "hours",
-            # Misc
-            "honor", "honors", "roll", "list", "labor", "policy", "policies",
-            "fee", "fees", "never", "mind",
-        }
-        _DIRECT_NON_CONTACT_ANCHORS = {
-            "tuition", "fee", "fees", "cost", "costs", "rate", "rates",
-            "policy", "policies", "rule", "rules", "probation", "gpa",
-            "housing", "visa", "handbook", "calendar", "holiday", "holidays",
-            "deadline", "deadlines", "break", "breaks", "semester", "term",
-            "document", "documents",
-        }
         _prompt_words = prompt.split()
         _prompt_title = prompt.title()
         _has_non_contact_anchor = any(w.lower() in _DIRECT_NON_CONTACT_ANCHORS for w in _prompt_words)

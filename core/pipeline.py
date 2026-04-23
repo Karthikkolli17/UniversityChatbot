@@ -7,7 +7,17 @@ from pathlib import Path
 
 _log = logging.getLogger(__name__)
 
-import streamlit as st
+try:
+    import streamlit as st
+except ImportError:
+    import types as _types
+    st = _types.SimpleNamespace(
+        error=lambda *a, **kw: None,
+        stop=lambda *a, **kw: None,
+        session_state={},
+        cache_resource=lambda fn=None, **kw: (fn if fn else (lambda f: f)),
+        cache_data=lambda fn=None, **kw: (fn if fn else (lambda f: f)),
+    )
 from dotenv import load_dotenv
 
 current_file = Path(__file__).resolve()
